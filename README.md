@@ -191,7 +191,7 @@ The webhook url for your site will be  _http(s)://&lt;your-domain&gt;.com/charge
 
 ##Sync plans
 
-Currently we do not support webhook notifications for addition, update and removal of Plans. However, this gem comes with a rake task to sync plans between Chargebee and your application. Hence, each time a plan is created in Chargebee, it will automatically be synced with your application. In the future, we will have webhooks events in place to support plan related operations. Once that'ss done, the rake task’s code will be included as part of the event handler.
+Currently Chargebee does not support webhook notifications for addition, update and removal of Plans. However, this gem comes with a rake task to sync plans between Chargebee and your application. Hence, each time a plan is created in Chargebee, it will automatically be synced with your application. In the future, we will have webhooks events in place to support plan related operations. Once that's done, the rake task’s code will be included as part of the event handler.
 
 The plans can be synced to your application using the following command:
 
@@ -473,4 +473,4 @@ Use the below API method to add the line items to the pending invoice after you 
 
 
 
-Please feel free to reach out to us  at **support@chargebee.com** in case of any queries.
+Please feel free to reach out to us  at ** ** in case of any queries.
