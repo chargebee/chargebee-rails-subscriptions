@@ -140,7 +140,7 @@ module ChargebeeRails
         plan_id: ::Plan.find_by(plan_id: subscription.plan_id).id,
         plan_quantity: subscription.plan_quantity,
         status: subscription.status,
-        event_last_modified_at: event.occurred_at,
+        event_last_modified_at: event.occurred_at ? Time.at(event.occurred_at) : Time.now,
         updated_at: Time.now,
         chargebee_data: chargebee_subscription_data(subscription)
       }
@@ -148,9 +148,9 @@ module ChargebeeRails
 
     def chargebee_subscription_data subscription
       {
-        trial_ends_at: subscription.trial_end,
-        next_renewal_at: subscription.current_term_end,
-        cancelled_at: subscription.cancelled_at,
+        trial_ends_at: subscription.trial_end ? Time.at(subscription.trial_end) : nil,
+        next_renewal_at: subscription.current_term_end ? Time.at(subscription.current_term_end) : nil,
+        cancelled_at: subscription.cancelled_at ? Time.at(subscription.cancelled_at) : nil,
         is_scheduled_for_cancel: (subscription.status == 'non-renewing' ? true : false),
         has_scheduled_changes: subscription.has_scheduled_changes
       }
@@ -165,7 +165,7 @@ module ChargebeeRails
         card_last4: card.last4,
         card_type: card.card_type,
         status: customer.payment_method.status,
-        event_last_modified_at: event.occurred_at,
+        event_last_modified_at: event.occurred_at ? Time.at(event.occurred_at) : Time.now,
         updated_at: Time.now
       }
     end
