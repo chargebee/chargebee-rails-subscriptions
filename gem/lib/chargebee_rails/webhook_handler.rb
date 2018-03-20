@@ -1,6 +1,5 @@
 module ChargebeeRails
   module WebhookHandler
-
     # Handle the ChargeBee event retrieved from webhook and call the
     # corresponding event type handler for the event
     def handle(chargebee_event)
@@ -60,7 +59,7 @@ module ChargebeeRails
     def credit_note_created; end
 
     def credit_note_updated; end
-    
+
     def credit_note_deleted; end
 
     def subscription_renewal_reminder; end
@@ -78,9 +77,9 @@ module ChargebeeRails
     def payment_refunded; end
 
     def payment_initiated; end
-    
+
     def refund_initiated; end
-    
+
     def card_added; end
 
     def card_updated; end
@@ -94,7 +93,7 @@ module ChargebeeRails
     private
 
     def sync_events_list
-      %w( 
+      %w(
         card_expired
         card_updated
         card_expiry_reminder
@@ -113,11 +112,16 @@ module ChargebeeRails
     end
 
     def sync_events
-      sync(existing_subscription, subscription_attrs(event.content.subscription)) if event.event_type.include?('subscription') && can_sync?(existing_subscription)
-      sync(existing_payment_method, payment_method_attrs(event.content.customer, event.content.card)) if event.event_type.include?('card') && event.content.customer.payment_method.present? && can_sync?(existing_payment_method)
+      if event.event_type.include?('subscription') && can_sync?(existing_subscription)
+        sync(existing_subscription, subscription_attrs(event.content.subscription))
+      end
+
+      if event.event_type.include?('card') && event.content.customer.payment_method.present? && can_sync?(existing_payment_method)
+        sync(existing_payment_method, payment_method_attrs(event.content.customer, event.content.card))
+      end
     end
 
-    def sync obj, attrs
+    def sync(obj, attrs)
       obj.update_all(attrs)
       send(event.event_type)
     end
@@ -130,33 +134,33 @@ module ChargebeeRails
       @existing_payment_method ||= ::PaymentMethod.where(cb_customer_id: event.content.customer.id)
     end
 
-    def can_sync? obj
+    def can_sync?(obj)
       obj.first && (obj.first.event_last_modified_at.to_i < event.occurred_at)
     end
 
-    def subscription_attrs subscription
+    def subscription_attrs(subscription)
       {
         chargebee_id: subscription.id,
         plan_id: ::Plan.find_by(plan_id: subscription.plan_id).id,
         plan_quantity: subscription.plan_quantity,
         status: subscription.status,
-        event_last_modified_at: event.occurred_at,
+        event_last_modified_at: event.occurred_at ? Time.at(event.occurred_at) : Time.now,
         updated_at: Time.now,
         chargebee_data: chargebee_subscription_data(subscription)
       }
     end
 
-    def chargebee_subscription_data subscription
+    def chargebee_subscription_data(subscription)
       {
-        trial_ends_at: subscription.trial_end,
-        next_renewal_at: subscription.current_term_end,
-        cancelled_at: subscription.cancelled_at,
+        trial_ends_at: subscription.trial_end ? Time.at(subscription.trial_end) : nil,
+        next_renewal_at: subscription.current_term_end ? Time.at(subscription.current_term_end) : nil,
+        cancelled_at: subscription.cancelled_at ? Time.at(subscription.cancelled_at) : nil,
         is_scheduled_for_cancel: (subscription.status == 'non-renewing' ? true : false),
         has_scheduled_changes: subscription.has_scheduled_changes
       }
     end
 
-    def payment_method_attrs customer, card
+    def payment_method_attrs(customer, card)
       {
         cb_customer_id: customer.id,
         auto_collection: customer.auto_collection,
@@ -165,10 +169,9 @@ module ChargebeeRails
         card_last4: card.last4,
         card_type: card.card_type,
         status: customer.payment_method.status,
-        event_last_modified_at: event.occurred_at,
+        event_last_modified_at: event.occurred_at ? Time.at(event.occurred_at) : Time.now,
         updated_at: Time.now
       }
     end
-
   end
 end
