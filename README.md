@@ -1,3 +1,6 @@
+**Note: This repository has been archived. To view the updated repository, click [here](https://github.com/spritlesoftware/chargebee-rails-subscriptions).**
+
+
 [Introduction](#introduction)
 
 [Prerequisite](#prerequisite)
